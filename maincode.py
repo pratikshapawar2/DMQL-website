@@ -36,6 +36,7 @@ csv_directory = "data_files"  # Replace with the path to your CSV directory
 # SQLite database file
 sqlite_db = "mydatabase.db"  # Replace with your SQLite database file name
 
+
 def load_csv_to_sqlite(csv_directory, sqlite_db):
     # Connect to the SQLite database
     conn = sqlite3.connect(sqlite_db)
@@ -67,6 +68,25 @@ def load_csv_to_sqlite(csv_directory, sqlite_db):
 # Call the function to load CSV files into SQLite
 load_csv_to_sqlite(csv_directory, sqlite_db)
 
+# Function to execute SQL queries
+def execute_query(query):
+    conn = sqlite3.connect(sqlite_db)
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query)
+        conn.commit()
+        if query.strip().upper().startswith('SELECT'):
+            rows = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+            df = pd.DataFrame(rows, columns=columns)
+            return df, None
+        else:
+            return None, f"Query executed successfully. {cursor.rowcount} rows affected."
+    except Exception as e:
+        return None, f"An error occurred: {e}"
+    finally:
+        cursor.close()
+        conn.close()
 
 # Streamlit app
 st.title("SQLite Database Management App")
