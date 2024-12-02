@@ -25,7 +25,7 @@ def execute_sql_file(file_path):
 # Initialize the database
 def init_db():
     # Execute the create.sql file to set up the tables
- #   execute_sql_file("sql_queries/create.sql")  # Replace with the path to your create.sql file
+    execute_sql_file("sql_queries/create.sql")  # Replace with the path to your create.sql file
  #   execute_sql_file("sql_queries/load.sql")
     execute_sql_file("sql_queries/alter.sql")
 init_db()
@@ -73,20 +73,23 @@ def execute_query(query):
     conn = sqlite3.connect(sqlite_db)
     try:
         cursor = conn.cursor()
-        cursor.execute(query)
-        conn.commit()
         if query.strip().upper().startswith('SELECT'):
+            cursor.execute(query)
             rows = cursor.fetchall()
             columns = [desc[0] for desc in cursor.description]
             df = pd.DataFrame(rows, columns=columns)
             return df, None
         else:
+            cursor.execute(query)
+            conn.commit()
             return None, f"Query executed successfully. {cursor.rowcount} rows affected."
     except Exception as e:
+        print(f"An error occurred: {e}")
         return None, f"An error occurred: {e}"
     finally:
         cursor.close()
         conn.close()
+
 
 # Streamlit app
 st.title("SQLite Database Management App")
@@ -133,10 +136,3 @@ elif choice == "Execute Query":
                 st.write("Query executed successfully. No results to display.")
         else:
             st.warning("Please enter a SQL query.")
-
-elif choice == "Load CSV Data":
-    st.subheader("Load CSV Files into Database")
-    csv_directory = st.text_input("Enter the path to your CSV directory:", "data_files")
-    if st.button("Load CSVs"):
-        load_csv_to_sqlite(csv_directory)
-        st.success("CSV files loaded successfully!")
